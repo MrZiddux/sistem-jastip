@@ -11,6 +11,10 @@ class Recipient extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+      'name',
+    ];
+
     public function packages(): HasMany
     {
       return $this->hasMany(Packages::class);
@@ -18,6 +22,6 @@ class Recipient extends Model
 
     public function recipientStatus(): HasOne
     {
-      return $this->hasOne(RecipientStatus::class);
+      return $this->hasOne(RecipientStatus::class, 'recipient_id', 'id');
     }
 }

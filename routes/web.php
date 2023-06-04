@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\JastipController;
+use App\Http\Controllers\PackagesController;
 use App\Http\Controllers\PricingOptionController;
 use App\Http\Controllers\StatusController;
 use Illuminate\Support\Facades\Route;
@@ -37,5 +38,10 @@ Route::controller(StatusController::class)->group(function() {
 });
 
 Route::get('jastip/get-data', [JastipController::class, 'getJastip'])->name('jastip.getData');
+Route::get('jastip/get-data/{id}', [JastipController::class, 'getJastipById'])->name('jastip.getDataById');
 Route::resource('jastip', JastipController::class);
+
+Route::controller(PackagesController::class)->group(function() {
+  Route::get('laporan-jastip', 'index')->name('laporan-jastip.index');
+});
 

@@ -20,6 +20,7 @@
 
   <link rel="stylesheet" href="{{ asset('assets/css/main/app.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/css/main/app-dark.css') }}">
+  <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
   {{ $style }}
 </head>
 

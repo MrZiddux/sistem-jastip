@@ -69,6 +69,13 @@
             </li>
           </ul>
         </li>
+
+        <li class="sidebar-item">
+          <a href="{{ route('laporan-jastip.index') }}" class="sidebar-link">
+            <i class="bi bi-clipboard2-data-fill"></i>
+            <span>Laporan Jastip</span>
+          </a>
+        </li>
       </ul>
     </div>
   </div>

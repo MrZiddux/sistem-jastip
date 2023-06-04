@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Jastip\CreateRequest;
+use App\Http\Requests\JastipRequest;
+use App\Models\Packages;
 use App\Models\Recipient;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
 class JastipController extends Controller
 {
-    private $recipient;
+    private $recipient, $package;
 
-    public function __construct(Recipient $recipient)
+    public function __construct(Recipient $recipient, Packages $package)
     {
       $this->recipient = $recipient;
+      $this->package = $package;
     }
 
     /**
@@ -23,21 +27,30 @@ class JastipController extends Controller
         return view('pages.jastip.index');
     }
 
+    /**
+     * Get Jastip
+     */
     public function getJastip()
     {
-      $data = $this->recipient->with('packages');
-      return response()->json($data);
-      // return DataTables::of($data)
-      //   ->addIndexColumn()
-      //   ->editColumn('price_per_kg', function($data) {
-      //     return "Rp. " . number_format($data->price_per_kg, 0, ',', '.');
-      //   })
-      //   ->addColumn('action', function($data) {
-      //     $buttons = '<button class="btn icon btn-info btn-edit me-1" data-uri="' . route("jenis-harga.update", $data->id) . '" data-bs-toggle="modal" data-bs-target="#editModal"><i class="bi bi-pencil-square"></i></button>';
-      //     $buttons .= '<button class="btn icon btn-danger btn-delete" data-uri="' . route('jenis-harga.destroy', $data->id) . '" data-bs-toggle="modal" data-bs-target="#deleteModal"><i class="bi bi-trash"></i></button>';
-      //     return $buttons;
-      //   })
-      //   ->toJson();
+      $data = $this->recipient->with(['packages', 'recipientStatus.status'])->get();
+      return DataTables::of($data)
+        ->addIndexColumn()
+        ->addColumn('action', function($data) {
+          $buttons = '<button class="btn icon btn-primary btn-detail me-1" data-uri="' . route('jastip.getDataById', $data->id) . '"><i class="bi bi-eye"></i></button>';
+          $buttons .= '<a href="' . route("jastip.show", $data->id) . '" class="btn icon btn-info btn-edit me-1"><i class="bi bi-pencil-square"></i></a>';
+          $buttons .= '<button class="btn icon btn-danger btn-delete" data-uri="' . route('jastip.destroy', $data->id) . '" data-bs-toggle="modal" data-bs-target="#deleteModal"><i class="bi bi-trash"></i></button>';
+          return $buttons;
+        })
+        ->toJson();
+    }
+
+    /**
+     * Get Jastip by ID
+     */
+    public function getJastipById(string $id)
+    {
+      $data = $this->recipient->with(['packages', 'recipientStatus.status'])->findOrFail($id);
+      return response()->json($data, 200);
     }
 
     /**
@@ -45,16 +58,29 @@ class JastipController extends Controller
      */
     public function create()
     {
-      
+
         return view('pages.jastip.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(JastipRequest $request)
     {
-        dd($request);
+      // dd($request->packages);
+        $recipient = new Recipient();
+        $recipient->name = $request->name;
+        $recipient->save();
+
+        $recipient->packages()->createMany($request->packages);
+        $recipient->recipientStatus()->create([
+          'status_id' => 1,
+        ]);
+
+        return response()->json([
+          'message' => 'Jastip Berhasil Ditambahkan',
+          'redirect_uri' => route('jastip.index'),
+        ], 200);
     }
 
     /**
@@ -62,7 +88,8 @@ class JastipController extends Controller
      */
     public function show(string $id)
     {
-        return view('pages.jastip.edit');
+        $recipient = $this->recipient->with(['packages', 'recipientStatus.status'])->findOrFail($id);
+        return view('pages.jastip.edit', compact('recipient'));
     }
 
     /**
@@ -76,9 +103,19 @@ class JastipController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(JastipRequest $request, string $id)
     {
-        //
+        $recipient = $this->recipient->findOrFail($id);
+        $recipient->name = $request->name;
+        $recipient->save();
+
+        $recipient->packages()->delete();
+        $recipient->packages()->createMany($request->packages);
+
+        return response()->json([
+          'message' => 'Jastip Berhasil Diubah',
+          'redirect_uri' => route('jastip.index'),
+        ], 200);
     }
 
     /**
@@ -86,6 +123,14 @@ class JastipController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $recipient = $this->recipient->findOrFail($id);
+        $recipient->packages()->delete();
+        $recipient->recipientStatus()->delete();
+        $recipient->delete();
+
+        return response()->json([
+          'message' => 'Jastip Berhasil Dihapus',
+          'redirect_uri' => route('jastip.index'),
+        ], 200);
     }
 }

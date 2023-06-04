@@ -14,14 +14,17 @@ return new class extends Migration
         Schema::create('packages', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('recipient_id');
-            $table->string('tracking_number');
-            $table->double('weight', 10, 2);
+            $table->string('tracking_number')->index();
+            $table->string('weight');
+            $table->string('pricing_option');
+            $table->string('length')->nullable();
+            $table->string('width')->nullable();
+            $table->string('height')->nullable();
+            $table->string('cubic_weight')->nullable();
             $table->integer('price');
-            $table->unsignedBigInteger('pricing_option_id');
             $table->timestamps();
 
             $table->foreign('recipient_id')->references('id')->on('recipients');
-            $table->foreign('pricing_option_id')->references('id')->on('pricing_options');
         });
     }
 

@@ -10,4 +10,9 @@ class Status extends Model
     use HasFactory;
 
     protected $fillable = ['name'];
+
+    public function recipientStatus()
+    {
+      return $this->belongsTo(RecipientStatus::class);
+    }
 }

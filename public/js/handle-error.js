@@ -1,7 +1,9 @@
 export const displayErrors = (el, errors) => {
   clearErrors();
   for (const key in errors) {
-    const input = $(`${el} [name=${key}]`);
+    const escapedKey = key.replace(/\./g, "\\.").replace(/\[\]/g, ".$&");
+    const input = $(`${el} [name="${escapedKey}"]`);
+    console.log(input);
     const parent = input.parent();
     input.addClass("is-invalid");
     parent.find("span.invalid-feedback").text(errors[key][0]);
