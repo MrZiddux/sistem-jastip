@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="{{ asset('assets/css/pages/datatables.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/extensions/toastify-js/src/toastify.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/extensions/choices.js/public/assets/styles/choices.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/extensions/sweetalert2/sweetalert2.min.css') }}">
 
   <link rel="stylesheet" href="{{ asset('assets/css/main/app.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/css/main/app-dark.css') }}">
@@ -44,6 +45,7 @@
   <script src="{{ asset('assets/extensions/datatables.net-bs5/js/datatables.min.js') }}"></script>
   <script src="{{ asset('assets/extensions/toastify-js/src/toastify.js') }}"></script>
   <script src="{{ asset('assets/extensions/choices.js/public/assets/scripts/choices.js') }}"></script>
+  <script src="{{ asset('assets/extensions/sweetalert2/sweetalert2.min.js') }}"></script>
 
   {{-- Custom JS --}}
   <script src="{{ asset('js/app.js') }}"></script>

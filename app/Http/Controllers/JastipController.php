@@ -7,6 +7,7 @@ use App\Http\Requests\JastipRequest;
 use App\Models\Packages;
 use App\Models\Recipient;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 class JastipController extends Controller
@@ -32,7 +33,10 @@ class JastipController extends Controller
      */
     public function getJastip()
     {
-      $data = $this->recipient->with(['packages', 'recipientStatus.status'])->get();
+      $data = $this->recipient->with(['packages', 'recipientStatus.status'])->whereHas('recipientStatus', function ($query) {
+        $query->where('status_id', 1);
+      })->whereDoesntHave('recipientLocation')->orderBy('name')->get();
+
       return DataTables::of($data)
         ->addIndexColumn()
         ->addColumn('action', function($data) {
@@ -68,14 +72,27 @@ class JastipController extends Controller
     public function store(JastipRequest $request)
     {
       // dd($request->packages);
-        $recipient = new Recipient();
-        $recipient->name = $request->name;
-        $recipient->save();
+        // $recipient = new Recipient();
+        // $recipient->name = $request->name;
+        // $recipient->save();
+      // dd($request);
+        DB::transaction(function () use ($request) {
+          $recipient = $this->recipient->create([
+            'name' => $request->name,
+          ]);
 
-        $recipient->packages()->createMany($request->packages);
-        $recipient->recipientStatus()->create([
-          'status_id' => 1,
-        ]);
+          // $recipient->packages()->createMany($request->packages);
+          foreach ($request->packages as $package) {
+            $recipient->packages()->create($package);
+          }
+
+          $recipient->recipientStatus()->create([
+            'status_id' => 1,
+          ]);
+
+        });
+
+
 
         return response()->json([
           'message' => 'Jastip Berhasil Ditambahkan',
@@ -114,7 +131,8 @@ class JastipController extends Controller
 
         return response()->json([
           'message' => 'Jastip Berhasil Diubah',
-          'redirect_uri' => route('jastip.index'),
+          'redirect_home' => route('jastip.index'),
+          'redirect_create' => route('jastip.create'),
         ], 200);
     }
 

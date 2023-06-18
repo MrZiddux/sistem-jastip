@@ -24,4 +24,9 @@ class Recipient extends Model
     {
       return $this->hasOne(RecipientStatus::class, 'recipient_id', 'id');
     }
+
+    public function recipientLocation(): HasOne
+    {
+      return $this->hasOne(RecipientLocation::class, 'recipient_id', 'id');
+    }
 }

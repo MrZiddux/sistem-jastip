@@ -1,37 +1,47 @@
 import clientRequest from "./request.js";
 import showToast from "./toast.js";
 
+const swal2 = Swal.mixin()
+
 $(function () {
   const deleteForm = $("#deleteForm");
   const deleteModal = $("#deleteModal");
-  /**
-   * GET JASTIP
-   */
+
   const table = $("#jastipTable");
-  const dataTableSetup = {
-    serverSide: true,
-    ajax: DATA_URL,
-    columns: [
-      {
-        sClass: "text-center",
-        data: "DT_RowIndex",
-        name: "id",
-      },
-      {
-        data: "name",
-      },
-      {
-        data: "recipient_status.status.name",
-      },
-      { data: "action", orderable: false, searchable: false },
-    ],
-  };
 
-  const drawTable = (dataTableData) => {
-    table.DataTable(dataTableData);
-  };
+  const route = window.location.pathname;
+  const isJastipProgress = route === "/jastip/diterima";
+  if (!isJastipProgress) {
+    /**
+     * GET JASTIP
+     */
+    const dataTableSetup = {
+      serverSide: true,
+      ajax: DATA_URL,
+      columns: [
+        {
+          sClass: "text-center",
+          data: "DT_RowIndex",
+          name: "id",
+        },
+        {
+          data: "name",
+        },
+        {
+          data: "recipient_status.status.name",
+        },
+        { data: "action", orderable: false, searchable: false },
+      ],
+    };
 
-  drawTable(dataTableSetup);
+    const drawTable = (dataTableData) => {
+      table.DataTable(dataTableData);
+    };
+
+    drawTable(dataTableSetup);
+
+
+  }
 
   const formatNumber = (number) => {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -100,4 +110,67 @@ $(function () {
       }
     });
   });
+
+  if(isJastipProgress) {
+    /**
+     * SAVE PROGRESS
+     */
+    const buttonSendJastip = $("#btn-send-jastip");
+    const inputSendLocation = $("#input-send-location")
+    function checkInputSendLocation() {
+      if (inputSendLocation.val() !== '') {
+        buttonSendJastip.prop("disabled", false);
+      } else {
+        buttonSendJastip.prop("disabled", true);
+      }
+    }
+
+    inputSendLocation.on("input", function () {
+      checkInputSendLocation();
+    })
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        buttonSendJastip.html(
+          `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sedang menyimpan data...`
+        );
+        buttonSendJastip.prop("disabled", true);
+      } else {
+        buttonSendJastip.html("Simpan");
+        buttonSendJastip.prop("disabled", false);
+      }
+    }
+
+    const formSendLocation = $('#form-send-location');
+
+    formSendLocation.on('submit', async function(e) {
+      e.preventDefault();
+      setLoading(true);
+      swal2.fire({
+        title: `Apakah anda yakin untuk menyimpan barang ke lokasi <b>${inputSendLocation.val()}</b>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, simpan!',
+        cancelButtonText: 'Tidak, batalkan!',
+        reverseButtons: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const formData = new FormData(this);
+          try {
+            const { data } = await axios.post(SEND_JASTIP_URL, formData);
+            window.location.reload();
+          } catch (error) {
+            setLoading(false);
+            console.log(error)
+          }
+        } else setLoading(false);
+      })
+    })
+
+    buttonSendJastip.on('click', function() {
+      formSendLocation.submit();
+    })
+  }
 });

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('home.index');
 });
 
 Route::controller(PricingOptionController::class)->group(function() {
@@ -39,9 +39,13 @@ Route::controller(StatusController::class)->group(function() {
 
 Route::get('jastip/get-data', [JastipController::class, 'getJastip'])->name('jastip.getData');
 Route::get('jastip/get-data/{id}', [JastipController::class, 'getJastipById'])->name('jastip.getDataById');
-Route::resource('jastip', JastipController::class);
-
 Route::controller(PackagesController::class)->group(function() {
-  Route::get('laporan-jastip', 'index')->name('laporan-jastip.index');
+  Route::get('jastip/diterima', 'index')->name('jastip.received');
+  Route::post('jastip/simpan-laporan', 'store')->name('jastip.saveJastipReport');
 });
 
+Route::resource('jastip', JastipController::class);
+
+Route::get('laporan-jastip', function () {
+  return view('errors.under-construction');
+})->name('laporan-jastip.index');

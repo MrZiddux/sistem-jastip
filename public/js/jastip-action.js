@@ -2,6 +2,8 @@ import clientRequest from "./request.js";
 import { clearErrors } from "./handle-error.js";
 import showToast from "./toast.js";
 
+const swal2 = Swal.mixin()
+
 $(function () {
   const createForm = $("#createForm");
   const editForm = $("#editForm");
@@ -213,19 +215,6 @@ $(function () {
     calculateTotalPrice();
   });
 
-  $("input").on("keydown", function (e) {
-    if (e.which === 13) {
-      e.preventDefault();
-      // add input not readonly, disabled, hidden to canfocus
-      const $canfocus = $(
-        'input:not([readonly]):not([disabled]):not([type="hidden"]), select, [tabindex]:not([tabindex="-1"])'
-      );
-      const index = $canfocus.index(this) + 1;
-      if (index >= $canfocus.length) $canfocus[0].focus();
-      else $canfocus[index].focus();
-    }
-  });
-
   const cards = $(".card.package");
   cards.each(function () {
     initializeCard($(this));
@@ -251,22 +240,44 @@ $(function () {
     const data = new FormData(this);
     const CREATE_URL = $(this).attr("action");
     setLoading(true);
-    clientRequest(CREATE_URL, "post", data, (success, res) => {
-      clearErrors();
-      setLoading(false);
-      if (success) {
-        showToast(res.data.message);
-        setTimeout(() => {
-          window.location.href = res.data.redirect_uri;
-        }, 3000);
+    swal2.fire({
+      title: "Apakah yakin untuk menyimpan data?",
+      icon: "question",
+      showCancelButton: true,
+      cancelButtonText: "Batal",
+      confirmButtonText: "Ya, Simpan",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        clientRequest(CREATE_URL, "post", data, (success, res) => {
+          clearErrors();
+          setLoading(false);
+          if (success) {
+            swal2.fire({
+              title: res.data.message,
+              icon: "success",
+              showCancelButton: true,
+              cancelButtonText: "Tambah Jastip",
+              confirmButtonText: "Lihat Daftar Jastip",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                window.location.href = res.data.redirect_uri;
+              } else {
+                window.location.reload();
+              }
+            });
+          } else {
+            if (res.status === 422) {
+              showToast("Isi Data Dengan Benar");
+            } else {
+              showToast("Gagal Untuk Menambahkan Data");
+            }
+          }
+        });
       } else {
-        if (res.status === 422) {
-          showToast("Isi Data Dengan Benar");
-        } else {
-          showToast("Gagal Untuk Menambahkan Data");
-        }
+        setLoading(false);
       }
-    });
+    })
   });
 
   /**
@@ -278,21 +289,57 @@ $(function () {
     data.set("_method", "PUT");
     const EDIT_URL = $(this).attr("action");
     setLoading(true);
-    clientRequest(EDIT_URL, "post", data, (success, res) => {
-      clearErrors();
-      setLoading(false);
-      if (success) {
-        showToast(res.data.message);
-        setTimeout(() => {
-          window.location.href = res.data.redirect_uri;
-        }, 3000);
+    swal2.fire({
+      title: "Apakah yakin untuk merubah data?",
+      icon: "question",
+      showCancelButton: true,
+      cancelButtonText: "Batal",
+      confirmButtonText: "Ya, Simpan",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) {
+        clientRequest(EDIT_URL, "post", data, (success, res) => {
+          clearErrors();
+          setLoading(false);
+          if (success) {
+            swal2.fire({
+              title: res.data.message,
+              icon: "success",
+              showCancelButton: true,
+              cancelButtonText: "Tambah Jastip Baru",
+              confirmButtonText: "Lihat Daftar Jastip",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                window.location.href = res.data.redirect_home;
+              } else {
+                window.location.href = res.data.redirect_create;
+              }
+            });
+          } else {
+            if (res.status === 422) {
+              showToast("Isi Data Dengan Benar");
+            } else {
+              showToast("Gagal Untuk Mengubah Data");
+            }
+          }
+        });
       } else {
-        if (res.status === 422) {
-          showToast("Isi Data Dengan Benar");
-        } else {
-          showToast("Gagal Untuk Mengubah Data");
-        }
+        setLoading(false);
       }
-    });
+    })
   });
+});
+
+$(document).on("keydown", "input, select", function(e) {
+  console.log(e.which)
+  if (e.which === 13 || e.which === 9) {
+    e.preventDefault();
+    const $submitBtn = $("button[type=submit]");
+    const $canfocus = $(
+      'input:not([readonly]):not([disabled]):not([type="hidden"]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+    const index = $canfocus.index(this) + 1;
+    if (index >= $canfocus.length) $canfocus[0].focus();
+    else  $canfocus[index].focus();
+  }
 });
